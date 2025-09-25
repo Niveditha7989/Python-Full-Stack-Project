@@ -66,3 +66,25 @@ def get_total_sales():
 
     total = sum(float(sale["total_price"]) for sale in sales_response.data)
     return {"total_sales": total}
+
+# Update product details (namee, price, quantity)
+def update_product(product_id, namee=None, price=None, quantity=None):
+    # Prepare update dict with only provided fields
+    update_data = {}
+    if namee is not None:
+        update_data["namee"] = namee
+    if price is not None:
+        update_data["price"] = price
+    if quantity is not None:
+        update_data["quantity"] = quantity
+
+    if not update_data:
+        # Nothing to update
+        return {"error": "No fields to update"}
+
+    update_response = supabase.table("productsss").update(update_data).eq("product_id", product_id).execute()
+
+    if update_response.status_code == 200:
+        return {"success": True, "data": update_response.data}
+    else:
+        return {"error": "Failed to update product"}
