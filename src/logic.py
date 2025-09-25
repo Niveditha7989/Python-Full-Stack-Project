@@ -1,55 +1,51 @@
-from src.db import DatabaseManager
+# src/logic.py
+from src.db import add_product, get_all_products, update_product, remove_product, purchase_product, get_total_sales, get_sales
 
 class GroceryStore:
-    def __init__(self):
-        self.db = DatabaseManager()
-
+    # --- Products ---
     def add_products(self, namee, price, quantity):
-        if not namee or not price or not quantity:
-            return {"Success": False, "Message": "Product name, price and quantity are required"}
-        
-        result = self.db.add_product(namee, price, quantity)
-        if result.status_code == 201:
+        if not namee or price <= 0 or quantity <= 0:
+            return {"Success": False, "Message": "Invalid input"}
+        resp = add_product(namee, price, quantity)
+        if resp.data:
             return {"Success": True, "Message": "Product added successfully"}
-        else:
-            return {"Success": False, "Message": "Failed to add product"}
+        return {"Success": False, "Message": "Failed to add product"}
 
     def get_products(self):
-        result = self.db.get_all_products()
-        if result.status_code == 200:
-            return result.data
-        else:
-            return {"Success": False, "Message": "Failed to fetch products"}
+        resp = get_all_products()
+        if resp.data is not None:
+            return resp.data
+        return []
 
-    def mark_completed(self, product_id, purchase_quantity):
-        if not product_id or not purchase_quantity:
-            return {"Success": False, "Message": "Product ID and purchase quantity are required"}
-
-        result = self.db.purchase_product(product_id, purchase_quantity)
-        if result.get("success"):
-            return {"Success": True, "Message": "Purchase completed successfully"}
-        else:
-            return {"Success": False, "Message": result.get("error", "Failed to complete purchase")}
+    def update_product(self, product_id, namee=None, price=None, quantity=None):
+        resp = update_product(product_id, namee, price, quantity)
+        if resp and resp.data is not None:
+            return {"Success": True, "Message": "Product updated successfully"}
+        return {"Success": False, "Message": "Failed to update product"}
 
     def delete_products(self, product_id):
-        result = self.db.remove_product(product_id)
-        if result.status_code == 200:
+        resp = remove_product(product_id)
+        if resp.data is not None:
             return {"Success": True, "Message": "Product deleted successfully"}
-        else:
-            return {"Success": False, "Message": "Failed to delete product"}
+        return {"Success": False, "Message": "Failed to delete product"}
 
+    # --- Purchase ---
+    def mark_completed(self, product_id, purchase_quantity):
+        resp = purchase_product(product_id, purchase_quantity)
+        if resp.get("success"):
+            return {"Success": True, "Message": "Purchase completed successfully"}
+        return {"Success": False, "Message": resp.get("error", "Failed")}
+
+    # --- Sales ---
     def get_total_sales(self):
-        result = self.db.get_total_sales()
-        if "total_sales" in result:
-            return {"Success": True, "TotalSales": result["total_sales"]}
-        else:
-            return {"Success": False, "Message": "Failed to fetch total sales"}
-    def update_product(self, product_id, namee=None, price=None, quantity=None):
-        if not product_id:
-            return {"Success": False, "Message": "Product ID is required"}
-        # You can optionally validate inputs here, e.g., price > 0 etc.
-        result = self.db.update_product(product_id, namee, price, quantity)
-        if result.get("success"):
-            return {"Success": True, "Message": "Product updated successfully"}
-        else:
-            return {"Success": False, "Message": result.get("error", "Failed to update product")}
+        return get_total_sales()
+
+    def get_sales_table(self):
+        resp = get_sales()
+        if resp.data is not None:
+            return resp.data
+        return []
+
+
+
+
